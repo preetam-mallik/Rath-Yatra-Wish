@@ -10,7 +10,7 @@
     <style>
         :root {
             /* Light Theme (Default) */
-            --bg-color: #FFF8E1;
+            --bg-overlay: linear-gradient(rgba(255, 248, 225, 0.85), rgba(255, 248, 225, 0.9));
             --text-primary: #4A2511;
             --text-shayari: #F47B20;
             --text-greeting: #005B7F;
@@ -34,7 +34,7 @@
         @media (prefers-color-scheme: dark) {
             :root {
                 /* Dark Theme Overrides */
-                --bg-color: #1a1a1a;
+                --bg-overlay: linear-gradient(rgba(26, 26, 26, 0.8), rgba(26, 26, 26, 0.9));
                 --text-primary: #f0f0f0;
                 --text-shayari: #FF9933;
                 --text-greeting: #f0f0f0;
@@ -96,15 +96,14 @@
 
         .card-container {
             width: 100vw; height: 100vh; height: 100svh;
-            background: var(--bg-color); position: relative;
+            position: relative;
             display: flex; flex-direction: column; transition: background 0.5s ease-in-out;
             padding: 2.5vh 25px;
-        }
-
-        .background-pattern {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23FF9933' fill-opacity='0.07'%3E%3Cpath d='M50 50c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10c-5.523 0-10-4.477-10-10zm10 20c-11.046 0-20-8.954-20-20s8.954-20 20-20 20 8.954 20 20-8.954 20-20 20zM30 10c-5.523 0-10-4.477-10-10s4.477-10 10-10 10 4.477 10 10-4.477 10-10 10z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-            z-index: 0;
+            /* UPDATED: Background now points to your local file 'jaganath.gif' */
+            background-image: var(--bg-overlay), url('jaganath.gif'), url('jaganath.gif');
+            background-size: cover, auto, cover;
+            background-position: center, center, center;
+            background-repeat: no-repeat, repeat, no-repeat;
         }
         
         .content-wrapper {
@@ -143,7 +142,7 @@
         }
 
         .rath-container { max-width: clamp(200px, 30vw, 250px); margin: 1vh auto; position: relative; flex-shrink: 0;}
-        .rath { width: 100%; height: auto; }
+        .rath { width: 100%; height: auto; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
         .wheel { position: absolute; width: 15%; animation: rotate 10s linear infinite; }
         .wheel-left { bottom: 18%; left: 22%; }
         .wheel-right { bottom: 18%; right: 22%; }
@@ -203,7 +202,6 @@
     </div>
 
     <div class="card-container">
-        <div class="background-pattern"></div>
         <div class="audio-control"><div class="mute-btn" id="muteBtn"></div></div>
         
         <div class="content-wrapper">
@@ -245,7 +243,7 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const ELEVENLABS_API_KEY = "sk_1956dfcd79542b2b4fd745589ff6e219ea3bb452d2d1ce8a";
+            const ELEVENLABS_API_KEY = "sk_f970e64108f616aa590a1ff230a19be599c9b860b9bf7b0a";
             const VOICE_ID = 'kL06KYMvPY56NluIQ72m';
             let ttsPlayedOnce = false;
 
@@ -266,7 +264,6 @@
             if (friendName) {
                 welcomeUserText.textContent = `${decodeURIComponent(friendName)} ne aapke liye ek sandesh bheja hai`;
                 greetingText.textContent = `Happy Ratha Yatra, ${decodeURIComponent(friendName)}!`;
-                if (formWrapper) formWrapper.style.display = 'none';
             } else {
                 welcomeUserText.textContent = "Aapke liye ek sandesh hai";
                 greetingText.textContent = 'Happy Ratha Yatra!';
@@ -279,7 +276,7 @@
 
             async function prepareGreetingSpeech(text) {
                 if (!text || !ELEVENLABS_API_KEY) {
-                    onAudioReady(); // If no API key, proceed without TTS
+                    onAudioReady(); 
                     return;
                 }
                 const url = `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}?optimize_streaming_latency=1`;
@@ -290,21 +287,21 @@
                     if (!response.ok) throw new Error("API Error");
                     const audioBlob = await response.blob();
                     ttsAudio.src = URL.createObjectURL(audioBlob);
-                    // 'canplaythrough' event listener is used to check if enough audio has loaded
                     ttsAudio.addEventListener('canplaythrough', onAudioReady, { once: true });
+                    setTimeout(onAudioReady, 5000); 
                     ttsAudio.load();
                 } catch (error) {
                     console.error("TTS Error:", error);
-                    onAudioReady(); // Proceed even if TTS fails
+                    onAudioReady(); 
                 }
             }
             
-            // This function is called when the audio is ready or if it fails
+            let audioIsReady = false;
             function onAudioReady() {
+                if(audioIsReady) return; 
+                audioIsReady = true;
                 welcomeActionText.textContent = 'Tap to Continue';
-                // Add click listener only when ready
                 welcomeScreen.style.cursor = 'pointer';
-                welcomeScreen.addEventListener('click', startExperience, { once: true });
             }
 
             prepareGreetingSpeech(textToSpeak);
@@ -319,7 +316,7 @@
                 isMuted = false;
                 muteBtn.innerHTML = unmuteIcon;
                 bgAudio.play().catch(e => {});
-                if (ttsAudio.src && !ttsPlayedOnce) {
+                if (ttsAudio.src && !ttsPlayedOnce && audioIsReady) {
                     ttsPlayedOnce = true;
                     bgAudio.volume = 0.1;
                     ttsAudio.play().catch(e => {});
@@ -327,6 +324,9 @@
                 }
             };
             
+            welcomeScreen.addEventListener('click', startExperience, { once: true });
+
+
             muteBtn.addEventListener('click', function(event) {
                 event.stopPropagation();
                 isMuted = !isMuted;
@@ -344,10 +344,10 @@
             if (form) {
                 form.addEventListener('submit', function(e) {
                     e.preventDefault();
-                    const friend = document.getElementById('friendName').value;
-                    if (!friend.trim()) return;
+                    const newFriendName = document.getElementById('friendName').value;
+                    if (!newFriendName.trim()) return;
                     const currentUrl = window.location.href.split('?')[0];
-                    const newUrl = `${currentUrl}?name=${encodeURIComponent(friend)}`;
+                    const newUrl = `${currentUrl}?name=${encodeURIComponent(newFriendName)}`;
                     const whatsappMessage = `Jai Jagannath! 🙏 मैंने आपके लिए एक special Ratha Yatra greeting बनाया है। देखने के लिए नीचे दिए गए लिंक पर क्लिक करें:\n\n${newUrl}`;
                     const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(whatsappMessage)}`;
                     window.open(whatsappUrl, '_blank');
@@ -357,4 +357,3 @@
     </script>
 </body>
 </html>
-
