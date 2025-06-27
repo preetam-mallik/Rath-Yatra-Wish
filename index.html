@@ -100,7 +100,7 @@
             display: flex; flex-direction: column; transition: background 0.5s ease-in-out;
             padding: 2.5vh 25px;
             /* UPDATED: Background now points to your local file 'Nath.jpg' */
-            background-image: var(--bg-overlay), url('https://i.imgur.com/sSgCoS1.png'), url('Nath.jpg');
+            background-image: var(--bg-overlay), url('jaganath.gif'), url('jaganath.gif');
             background-size: cover, auto, cover;
             background-position: center, center, center;
             background-repeat: no-repeat, repeat, no-repeat;
@@ -131,11 +131,10 @@
         .shayari-text {
             font-family: 'Charm', cursive; font-weight: 700; font-size: clamp(1rem, 3.8vw, 1.5rem); 
             line-height: 1.6; color: var(--text-shayari); margin: 0 5px; white-space: pre-wrap;
-            /* --- PERFORMANCE FIX --- */
             text-shadow: 0 0 8px var(--shayari-glow2), 0 0 15px var(--shayari-glow3);
             animation: text-glow 3s infinite alternate; /* Animating opacity is much faster */
-            overflow-y: auto; 
-            max-height: 25vh; 
+            overflow-y: auto; /* Allow shayari to scroll if it's too long */
+            max-height: 25vh; /* Limit the max height of shayari */
         }
         @keyframes text-glow {
             from { opacity: 0.8; }
@@ -158,7 +157,7 @@
         }
         .form-container {
             background: var(--form-bg); border-radius: 20px; padding: clamp(15px, 3vw, 20px); 
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); width: 100%; max-width: 380px; margin: 0 auto;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); width: 100%; max-width: 400px; margin: 0 auto;
             backdrop-filter: blur(8px); border: var(--form-border);
         }
         
@@ -202,8 +201,9 @@
 <body>
     <div id="welcome-screen">
         <div class="welcome-text">Jai Jagannath</div>
-        <div class="welcome-subtext" id="welcomeUserText"></div>
-        <div class="welcome-subtext" id="welcome-subtext-action">Loading...</div>
+        <div class="welcome-banner">
+            <div class="welcome-subtext" id="welcomeUserText"></div>
+        </div>
     </div>
 
     <div class="card-container">
@@ -211,7 +211,8 @@
         
         <div class="content-wrapper">
             <header>
-                <img src="https://i.imgur.com/9C3L63E.gif" alt="Jai Jagannath" class="main-image" onerror="this.src='https://placehold.co/500x500/1a1a1a/FF9933?text=Jai+Jagannath'; this.onerror=null;">
+                <!-- IMAGE SRC REVERTED TO LOCAL FILE -->
+                <img src="jaganath.gif" alt="jaganath.gif" class="main-image" onerror="this.src='https://placehold.co/500x500/1a1a1a/FF9933?text=Jai+Jagannath'; this.onerror=null;">
             </header>
             
             <div class="main-content">
@@ -231,6 +232,7 @@
                  <div class="form-container">
                     <h2 class="form-title">Apno ko Shubhkamnayein Bhejein</h2>
                     <form id="greetingForm">
+                        <div class="form-group"><input type="text" id="yourName" placeholder="Aapka Naam Likhein..." required></div>
                         <div class="form-group"><input type="text" id="friendName" placeholder="Dost ka Naam Likhein..." required></div>
                         <button type="submit" class="primary-btn" id="shareBtn">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
@@ -243,8 +245,8 @@
         </div>
     </div>
     
-    <audio id="bgAudio" loop><source src="Rath.mp3" type="audio/mpeg"></audio>
-    <audio id="ttsAudio"></audio>
+    <audio id="bgAudio" preload="auto" loop><source src="Rath.mp3" type="audio/mpeg"></audio>
+    <audio id="ttsAudio" preload="none"></audio>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -256,22 +258,27 @@
             
             const welcomeScreen = document.getElementById('welcome-screen');
             const welcomeUserText = document.getElementById('welcomeUserText');
-            const welcomeActionText = document.getElementById('welcome-subtext-action');
             const urlParams = new URLSearchParams(window.location.search);
-            const friendName = urlParams.get('name');
+            const recipientName = urlParams.get('name');
+            const senderName = urlParams.get('from');
             const greetingText = document.getElementById('greetingText');
             const shayariText = document.getElementById('shayariText');
-            const formWrapper = document.getElementById('formWrapper');
+            const formYourNameInput = document.getElementById('yourName');
             const bgAudio = document.getElementById('bgAudio');
             const ttsAudio = document.getElementById('ttsAudio');
             const muteBtn = document.getElementById('muteBtn');
 
-            if (friendName) {
-                welcomeUserText.textContent = `${decodeURIComponent(friendName)} ne aapke liye ek sandesh bheja hai`;
-                greetingText.textContent = `Happy Ratha Yatra, ${decodeURIComponent(friendName)}!`;
+            if (senderName) {
+                welcomeUserText.textContent = `${decodeURIComponent(senderName)} ne aapke liye sandesh bheja hai`;
             } else {
-                welcomeUserText.textContent = "Aapke liye ek sandesh hai";
-                greetingText.textContent = 'Happy Ratha Yatra!';
+                welcomeUserText.textContent = "Aapke liye ek pavitra sandesh";
+            }
+            
+            if (recipientName) {
+                 greetingText.textContent = `Happy Ratha Yatra, ${decodeURIComponent(recipientName)}!`;
+                 formYourNameInput.value = decodeURIComponent(recipientName);
+            } else {
+                 greetingText.textContent = 'Happy Ratha Yatra!';
             }
             
             const randomIndex = Math.floor(Math.random() * shayaris.length);
@@ -280,9 +287,91 @@
             const textToSpeak = `${greetingText.textContent}. ${shayariText.textContent.replace(/\n/g, ' ')}`;
 
             async function prepareGreetingSpeech(text) {
-                if (!text || !ELEVENLABS_API_KEY) {
-                    onAudioReady(); 
-                    return;
+                if (!text || !ELEVENLABS_API_KEY) { onAudioReady(); return; }
+                const url = `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}/stream`;
+                const headers = { "Accept": "audio/mpeg", "Content-Type": "application/json", "xi-api-key": ELEVENLABS_API_KEY };
+                const data = { "text": text, "model_id": "eleven_multilingual_v2", "voice_settings": { "stability": 0.5, "similarity_boost": 0.75 } };
+                try {
+                    const response = await fetch(url, { method: 'POST', headers: headers, body: JSON.stringify(data) });
+                    if (!response.ok) throw new Error("API Error");
+                    const mediaSource = new MediaSource();
+                    ttsAudio.src = URL.createObjectURL(mediaSource);
+                    mediaSource.addEventListener('sourceopen', async () => {
+                        const sourceBuffer = mediaSource.addSourceBuffer('audio/mpeg');
+                        const reader = response.body.getReader();
+                        let firstChunk = true;
+                        while (true) {
+                            const { done, value } = await reader.read();
+                            if (done) {
+                                if (mediaSource.readyState === "open" && !sourceBuffer.updating) mediaSource.endOfStream();
+                                else if (mediaSource.readyState === "open") sourceBuffer.addEventListener('updateend', () => mediaSource.endOfStream());
+                                break;
+                            }
+                            if (firstChunk) { onAudioReady(); firstChunk = false; }
+                            await new Promise(resolve => {
+                                sourceBuffer.addEventListener('updateend', resolve, { once: true });
+                                sourceBuffer.appendBuffer(value);
+                            });
+                        }
+                    });
+                } catch (error) { console.error("TTS Error:", error); onAudioReady(); }
+            }
+            
+            let audioIsReady = false;
+            function onAudioReady() {
+                if(audioIsReady) return; 
+                audioIsReady = true;
+                welcomeScreen.addEventListener('click', startExperience, { once: true });
+            }
+
+            prepareGreetingSpeech(textToSpeak);
+
+            const unmuteIcon = '<svg viewBox="0 0 24 24" fill="white"><path d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77zM16.5 12c0-1.77-1-3.29-2.5-4.03v8.05c1.5-0.74 2.5-2.26 2.5-4.02zM3 9v6h4l5 5V4L7 9H3z"></path></svg>';
+            const muteIcon = '<svg viewBox="0 0 24 24" fill="white"><path d="M4.34 2.93L2.93 4.34 7.29 8.7 7 9H3v6h4l5 5v-6.59l4.18 4.18c-.65.49-1.38.88-2.18 1.11v2.06c1.34-.3 2.57-.92 3.61-1.75l2.05 2.05 1.41-1.41L4.34 2.93zM19 12c0 .82-.15 1.61-.41 2.34l1.53 1.53c.56-1.17.88-2.48.88-3.87 0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zm-7-8l-1.88 1.88L12 7.41V4h-1z"></path></svg>';
+            let isMuted = true;
+            muteBtn.innerHTML = muteIcon;
+
+            const startExperience = () => {
+                welcomeScreen.classList.add('hidden');
+                isMuted = false;
+                muteBtn.innerHTML = unmuteIcon;
+                bgAudio.play().catch(e => {});
+                if (ttsAudio.src && !ttsPlayedOnce && audioIsReady) {
+                    ttsPlayedOnce = true;
+                    bgAudio.volume = 0.1;
+                    ttsAudio.play().catch(e => {});
+                    ttsAudio.onended = () => { if (!isMuted) bgAudio.volume = 0.5; };
                 }
-                const url = `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}?optimize_streaming_latency=1`;
-                const headers = { "Accept": "audio/mpeg", "Content-Type": "application/json", "xi-api-key": ELEVEN
+            };
+            
+            muteBtn.addEventListener('click', function(event) {
+                event.stopPropagation();
+                isMuted = !isMuted;
+                muteBtn.innerHTML = isMuted ? muteIcon : unmuteIcon;
+                if (isMuted) { bgAudio.pause(); ttsAudio.pause(); } 
+                else {
+                    bgAudio.play().catch(e => {});
+                    if (ttsAudio.paused && ttsAudio.currentTime > 0 && !ttsAudio.ended) {
+                       ttsAudio.play().catch(e => {});
+                    }
+                }
+            });
+            
+            const form = document.getElementById('greetingForm');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const yourName = document.getElementById('yourName').value;
+                    const newFriendName = document.getElementById('friendName').value;
+                    if (!yourName.trim() || !newFriendName.trim()) return;
+                    const currentUrl = window.location.href.split('?')[0];
+                    const newUrl = `${currentUrl}?from=${encodeURIComponent(yourName)}&name=${encodeURIComponent(newFriendName)}`;
+                    const whatsappMessage = `Jai Jagannath! 🙏 ${yourName} ne aapke liye ek special Ratha Yatra greeting banaya hai. Dekhne ke liye neeche diye gaye link par click karein:\n\n${newUrl}`;
+                    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(whatsappMessage)}`;
+                    window.open(whatsappUrl, '_blank');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
